@@ -1,19 +1,17 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using UnityEngine.Advertisements;  // Add this for Unity Ads
+using UnityEngine.Advertisements;
 
-public class HealthManager : MonoBehaviour, IUnityAdsListener
+public class HealthManager : MonoBehaviour
 {
     public int collisionThreshold = 3;
     private int collisionCount = 0;
     public Slider healthSlider;
     public string gameOverSceneName = "GameOverScene";
 
-
-    // Unity Ads
-    private string gameId = "YOUR_GAME_ID";  // Replace with your actual Game ID
-    private string adUnitId = "Interstitial_Android"; // Replace with your actual Ad Unit ID
+    private string gameId = "5722429";  // Replace with your actual Game ID
+    private string adUnitId = "Interstitial_Android";  // Replace with your Ad Unit ID
     private bool adLoaded = false;
 
     void Start()
@@ -26,13 +24,36 @@ public class HealthManager : MonoBehaviour, IUnityAdsListener
 
         // Initialize Unity Ads
         Advertisement.Initialize(gameId, true);
-        Advertisement.AddListener(this);
+
+        // Load an ad in advance
+        Advertisement.Load(adUnitId, new UnityAdsLoadListener(this));
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Bullets"))
+        // Check if the player collides with the specific object (e.g., tagged "LethalObject")
+        if (collision.gameObject.CompareTag("DeathZone"))
         {
+            // Immediately set health to zero
+            collisionCount = collisionThreshold;
+            if (healthSlider != null)
+            {
+                healthSlider.value = 0;
+            }
+
+            // Show ad or destroy the player object depending on its tag
+            if (gameObject.CompareTag("Player"))
+            {
+                ShowAd();
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
+        else if (collision.gameObject.CompareTag("Bullets"))
+        {
+            // Increment collision count and reduce health normally
             collisionCount++;
 
             if (healthSlider != null)
@@ -40,11 +61,11 @@ public class HealthManager : MonoBehaviour, IUnityAdsListener
                 healthSlider.value = collisionThreshold - collisionCount;
             }
 
+            // Check if health has reached zero
             if (collisionCount >= collisionThreshold)
             {
                 if (gameObject.CompareTag("Player"))
                 {
-                    // Show an ad before loading the game over scene
                     ShowAd();
                 }
                 else
@@ -57,22 +78,12 @@ public class HealthManager : MonoBehaviour, IUnityAdsListener
 
     void ShowAd()
     {
-        if (Advertisement.IsReady(adUnitId))
+        if (adLoaded)
         {
-            Advertisement.Show(adUnitId);
+            Advertisement.Show(adUnitId, new UnityAdsShowListener(this));
         }
         else
         {
-            // If the ad is not ready, proceed to game over
-            LoadGameOverScene();
-        }
-    }
-
-    public void OnUnityAdsDidFinish(string placementId, ShowResult showResult)
-    {
-        if (placementId == adUnitId)
-        {
-            // After the ad finishes, load the game over scene
             LoadGameOverScene();
         }
     }
@@ -82,7 +93,47 @@ public class HealthManager : MonoBehaviour, IUnityAdsListener
         SceneManager.LoadScene(gameOverSceneName);
     }
 
-    public void OnUnityAdsReady(string placementId) { adLoaded = true; }
-    public void OnUnityAdsDidError(string message) { /* Log any errors here */ }
-    public void OnUnityAdsDidStart(string placementId) { }
+    private class UnityAdsLoadListener : IUnityAdsLoadListener
+    {
+        private HealthManager healthManager;
+        public UnityAdsLoadListener(HealthManager healthManager)
+        {
+            this.healthManager = healthManager;
+        }
+
+        public void OnUnityAdsAdLoaded(string placementId)
+        {
+            healthManager.adLoaded = true;
+        }
+
+        public void OnUnityAdsFailedToLoad(string placementId, UnityAdsLoadError error, string message)
+        {
+            healthManager.adLoaded = false;
+            Debug.Log($"Error loading ad: {message}");
+        }
+    }
+
+    private class UnityAdsShowListener : IUnityAdsShowListener
+    {
+        private HealthManager healthManager;
+        public UnityAdsShowListener(HealthManager healthManager)
+        {
+            this.healthManager = healthManager;
+        }
+
+        public void OnUnityAdsShowComplete(string placementId, UnityAdsShowCompletionState showCompletionState)
+        {
+            healthManager.LoadGameOverScene();
+        }
+
+        public void OnUnityAdsShowFailure(string placementId, UnityAdsShowError error, string message)
+        {
+            healthManager.LoadGameOverScene();
+            Debug.Log($"Error showing ad: {message}");
+        }
+
+        public void OnUnityAdsShowStart(string placementId) { }
+
+        public void OnUnityAdsShowClick(string placementId) { }
+    }
 }

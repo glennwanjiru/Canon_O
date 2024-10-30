@@ -4097,8 +4097,8 @@ GameObject:
   - component: {fileID: 1130066549}
   - component: {fileID: 1130066548}
   m_Layer: 0
-  m_Name: Plane (1)
-  m_TagString: Bullets
+  m_Name: Death
+  m_TagString: DeathZone
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -4592,7 +4592,7 @@ GameObject:
   - component: {fileID: 1254738763}
   - component: {fileID: 1254738762}
   m_Layer: 5
-  m_Name: Shoot (1)
+  m_Name: Jump
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6605,6 +6605,11 @@ PrefabInstance:
       propertyPath: rotationSpeed
       value: -300
       objectReference: {fileID: 0}
+    - target: {fileID: 8222917947441815426, guid: 6dee64b3a7b8473409ec2e338ec3a63b,
+        type: 3}
+      propertyPath: jumpButton
+      value: 
+      objectReference: {fileID: 1254738762}
     - target: {fileID: 8222917947441815426, guid: 6dee64b3a7b8473409ec2e338ec3a63b,
         type: 3}
       propertyPath: shootButton
