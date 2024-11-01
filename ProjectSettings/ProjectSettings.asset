@@ -816,7 +816,7 @@ PlayerSettings:
     PS5: 
     QNX: 
     Stadia: 
-    Standalone: 
+    Standalone: LEVELPLAY_DEPENDENCIES_INSTALLED
     VisionOS: 
     WebGL: 
     XboxOne: 
